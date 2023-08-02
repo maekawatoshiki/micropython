@@ -45,7 +45,9 @@ static const char pad_zeroes[] = "0000000000000000";
 
 STATIC void plat_print_strn(void *env, const char *str, size_t len) {
     (void)env;
-    MP_PLAT_PRINT_STRN(str, len);
+    while (len-- > 0)
+      putchar(*str++);
+    /* MP_PLAT_PRINT_STRN(str, len); */
 }
 
 const mp_print_t mp_plat_print = {NULL, plat_print_strn};

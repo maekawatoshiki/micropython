@@ -70,7 +70,7 @@ extern uint32_t _estack, _sidata, _sdata, _edata, _sbss, _ebss;
 void Reset_Handler(void) __attribute__((naked));
 void bare_main(void);
 
-static void stm32_init(void);
+/* static void stm32_init(void); */
 static void gpio_init_alt(periph_gpio_t *gpio, int pin, int alt);
 
 // Very simple ARM vector table.
@@ -81,6 +81,7 @@ const uint32_t isr_vector[] __attribute__((section(".isr_vector"))) = {
 
 // The CPU runs this function after a reset.
 void Reset_Handler(void) {
+#if 0
     // Set stack pointer.
     __asm volatile ("ldr sp, =_estack");
 
@@ -102,17 +103,18 @@ void Reset_Handler(void) {
     // This function must not return.
     for (;;) {
     }
+#endif
 }
 
 // Set up the STM32 MCU.
-static void stm32_init(void) {
-    // Note: default clock is internal 16MHz.
-    RCC->AHB1ENR |= 1 << 0; // GPIOAEN
-    RCC->APB1ENR |= 1 << 19; // UART4EN
-    gpio_init_alt(GPIOA, 0, 8);
-    UART4->BRR = (8 << 4) | 11; // 16MHz/(16*8.6875) = 115107 baud
-    UART4->CR1 = 0x00002008; // USART enable, tx enable, rx enable
-}
+/* static void stm32_init(void) { */
+/*     // Note: default clock is internal 16MHz. */
+/*     RCC->AHB1ENR |= 1 << 0; // GPIOAEN */
+/*     RCC->APB1ENR |= 1 << 19; // UART4EN */
+/*     gpio_init_alt(GPIOA, 0, 8); */
+/*     UART4->BRR = (8 << 4) | 11; // 16MHz/(16*8.6875) = 115107 baud */
+/*     UART4->CR1 = 0x00002008; // USART enable, tx enable, rx enable */
+/* } */
 
 // Configure a GPIO pin in alternate-function mode.
 static void gpio_init_alt(periph_gpio_t *gpio, int pin, int alt) {

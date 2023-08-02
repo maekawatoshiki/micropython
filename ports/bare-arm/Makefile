@@ -8,14 +8,14 @@ include $(TOP)/py/py.mk
 MICROPY_ROM_TEXT_COMPRESSION ?= 0
 
 # Define toolchain and other tools.
-CROSS_COMPILE ?= arm-none-eabi-
+CROSS_COMPILE ?= ~/riscv/bin/riscv32-unknown-elf-
 DFU ?= $(TOP)/tools/dfu.py
 PYDFU ?= $(TOP)/tools/pydfu.py
 
 # Set CFLAGS.
 CFLAGS += -I. -I$(TOP) -I$(BUILD)
-CFLAGS += -Wall -Werror -std=c99 -nostdlib
-CFLAGS += -mthumb -mtune=cortex-m4 -mcpu=cortex-m4 -msoft-float
+CFLAGS += -Wall -Werror -std=c99 # -nostdlib
+CFLAGS += -DMICROPY_NLR_AARCH64
 CSUPEROPT = -Os # save some code space for performance-critical code
 
 # Select debugging or optimisation build.
@@ -27,33 +27,35 @@ CFLAGS += -fdata-sections -ffunction-sections
 endif
 
 # Set linker flags.
-LDFLAGS += -nostdlib -T stm32f405.ld --gc-sections
+LDFLAGS +=
+# -nostdlib -T stm32f405.ld --gc-sections
 
 # Define the required source files.
-SRC_C += lib.c main.c system.c
+SRC_C += main.c # system.c
 
 # Define the required object files.
 OBJ += $(PY_CORE_O)
 OBJ += $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
 # Define the top-level target, the main firmware.
-all: $(BUILD)/firmware.dfu
+all: $(BUILD)/firmware.elf
 
 $(BUILD)/firmware.elf: $(OBJ)
-	$(ECHO) "LINK $@"
-	$(Q)$(LD) $(LDFLAGS) -o $@ $^
-	$(Q)$(SIZE) $@
+	~/riscv/bin/riscv32-unknown-elf-gcc $(LDFLAGS) -o $@ $^
+	# $(ECHO) "LINK $@"
+	# $(Q)$(LD) $(LDFLAGS) -o $@ $^
+	# $(Q)$(SIZE) $@
 
-$(BUILD)/firmware.bin: $(BUILD)/firmware.elf
-	$(ECHO) "Create $@"
-	$(Q)$(OBJCOPY) -O binary -j .isr_vector -j .text -j .data $^ $@
+# $(BUILD)/firmware.bin: $(BUILD)/firmware.elf
+# 	$(ECHO) "Create $@"
+# 	$(Q)$(OBJCOPY) -O binary -j .isr_vector -j .text -j .data $^ $@
+#
+# $(BUILD)/firmware.dfu: $(BUILD)/firmware.bin
+# 	$(ECHO) "Create $@"
+# 	$(Q)$(PYTHON) $(DFU) -b 0x08000000:$^ $@
 
-$(BUILD)/firmware.dfu: $(BUILD)/firmware.bin
-	$(ECHO) "Create $@"
-	$(Q)$(PYTHON) $(DFU) -b 0x08000000:$^ $@
-
-deploy: $(BUILD)/firmware.dfu
-	$(Q)$(PYTHON) $(PYDFU) -u $^
+# deploy: $(BUILD)/firmware.dfu
+# 	$(Q)$(PYTHON) $(PYDFU) -u $^
 
 # Include remaining core make rules.
 include $(TOP)/py/mkrules.mk
